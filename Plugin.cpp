@@ -53,17 +53,17 @@ struct ZeroAnalysisPass
 
     // Query states only now that the solver has converged.
     auto describe = [&](Value value, AsmState &asmState) -> std::string {
-      const auto *lattice = solver.lookupState<zero::ZeroLattice>(value);
+      const auto *lattice = solver.lookupState<sign::SignLattice>(value);
       if (!lattice)
         return {};
-      zero::Kind kind = lattice->getValue().kind;
+      sign::Kind kind = lattice->getValue().kind;
       // Top and bottom say nothing; printing them would bury the real facts.
-      if (kind == zero::Kind::Top || kind == zero::Kind::Bottom)
+      if (kind == sign::Kind::Top || kind == sign::Kind::Bottom)
         return {};
       std::string description;
       llvm::raw_string_ostream os(description);
       value.printAsOperand(os, asmState);
-      os << " is " << zero::name(kind);
+      os << " is " << sign::name(kind);
       return description;
     };
 

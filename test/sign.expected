@@ -1,0 +1,57 @@
+# Checks against the annotated listing mlir-opt writes to stderr.
+#   plain line  -- this text must appear
+#   !-prefixed  -- this text must NOT appear
+#
+# MLIR's printer renumbers SSA values, so pin each check to the operation text
+# rather than to the names in sign.mlir.  Regenerate with
+# `PASS=sign-analysis ./run.sh test/sign.mlir` after adding or reordering
+# operations.
+#
+# The inverted checks below match on the trailing `//` that introduces an
+# annotation, so they fire if any annotation at all is attached -- not only if
+# the analysis guesses one particular sign.
+
+# --- constants ------------------------------------------------------------
+llvm.mlir.constant(-7 : i32) : i32 // %0 is negative
+llvm.mlir.constant(0 : i32) : i32 // %1 is zero
+llvm.mlir.constant(1 : i32) : i32 // %2 is one
+llvm.mlir.constant(5 : i32) : i32 // %3 is positive
+
+# --- add / sub ------------------------------------------------------------
+# Adding or subtracting zero keeps the operand's state.
+llvm.add %0, %1 : i32 // %3 is one
+llvm.sub %2, %0 : i32 // %4 is negative
+# 0 - 1 is negative.
+llvm.sub %0, %1 : i32 // %5 is negative
+# x - x is zero even when x is an unknown argument.
+llvm.sub %arg0, %arg0 : i32 // %6 is zero
+llvm.sub %1, %1 : i32 // %7 is zero
+# 1 - positive is only nonpositive: the right side may be exactly one.
+llvm.sub %1, %8 : i32 // %9 is nonpositive
+
+# --- mul / sdiv -----------------------------------------------------------
+# A zero operand annihilates, even against an unknown one.
+llvm.mul %arg0, %0 : i32 // %3 is zero
+llvm.mul %2, %1 : i32 // %4 is negative
+# x * x is never negative; it is not positive either, since x may be zero.
+llvm.mul %arg0, %arg0 : i32 // %5 is nonnegative
+# x / x is one, and 0 / y is zero.
+llvm.sdiv %arg0, %arg0 : i32 // %6 is one
+llvm.sdiv %0, %2 : i32 // %7 is zero
+llvm.sdiv %2, %2 : i32 // %8 is one
+
+# --- the solver joining facts at a block argument -------------------------
+# zero join positive is nonnegative.
+// argument: %3 is nonnegative
+
+# --- soundness: these must stay unknown -----------------------------------
+# Both operands are function arguments, so no rule may fire.  `and` and `shl`
+# have no rule at all.  If a rule for either is added, the matching line here
+# must come out.
+!llvm.add %arg0, %arg1 : i32 //
+!llvm.and %arg0, %arg1 : i32 //
+!llvm.shl %arg0, %arg1 : i32 //
+
+# nonnegative join negative loses all information, so the second block
+# argument in @join must carry no annotation.
+!argument: %4 is

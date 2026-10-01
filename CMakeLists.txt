@@ -137,8 +137,8 @@ if(MLIR_OPT_EXECUTABLE)
     COMMAND ${CMAKE_COMMAND}
       -DMLIR_OPT=${MLIR_OPT_EXECUTABLE}
       -DPLUGIN=$<TARGET_FILE:SignAnalysis>
-      -DINPUT=${CMAKE_CURRENT_SOURCE_DIR}/test/zero.mlir
-      -DCHECKS=${CMAKE_CURRENT_SOURCE_DIR}/test/zero.expected
+      -DINPUT=${CMAKE_CURRENT_SOURCE_DIR}/test/sign.mlir
+      -DCHECKS=${CMAKE_CURRENT_SOURCE_DIR}/test/sign.expected
       -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/RunTest.cmake)
 else()
   message(STATUS "mlir-opt not found; skipping tests")
