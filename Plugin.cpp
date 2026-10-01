@@ -6,6 +6,7 @@
 
 #include "Annotate.h"
 #include "ZeroAnalysis.h"
+#include "SignAnalysis.h"
 
 #include "mlir/Analysis/DataFlow/ConstantPropagationAnalysis.h"
 #include "mlir/Analysis/DataFlow/DeadCodeAnalysis.h"
@@ -42,7 +43,8 @@ struct ZeroAnalysisPass
     // conditions for it.  Both are prerequisites, not extras.
     solver.load<dataflow::DeadCodeAnalysis>();
     solver.load<dataflow::SparseConstantPropagation>();
-    solver.load<zero::ZeroAnalysis>();
+    // solver.load<zero::ZeroAnalysis>();
+    solver.load<sign::SignAnalysis>();
 
     if (failed(solver.initializeAndRun(getOperation()))) {
       getOperation().emitError("zero analysis failed to reach a fixed point");

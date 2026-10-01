@@ -11,7 +11,7 @@ set -eu
 BUILD_DIR="${BUILD_DIR:-build}"
 
 if [ -z "${PLUGIN:-}" ]; then
-  for candidate in "$BUILD_DIR"/ZeroAnalysis.so "$BUILD_DIR"/ZeroAnalysis.dylib; do
+  for candidate in "$BUILD_DIR"/SignAnalysis.so "$BUILD_DIR"/SignAnalysis.dylib; do
     if [ -f "$candidate" ]; then
       PLUGIN="$candidate"
       break
