@@ -140,6 +140,25 @@ if(MLIR_OPT_EXECUTABLE)
       -DINPUT=${CMAKE_CURRENT_SOURCE_DIR}/test/sign.mlir
       -DCHECKS=${CMAKE_CURRENT_SOURCE_DIR}/test/sign.expected
       -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/RunTest.cmake)
+
+  find_package(Python3 QUIET COMPONENTS Interpreter)
+  find_program(MLIR_TRANSLATE_EXECUTABLE mlir-translate
+    HINTS ${MLIR_TOOLS_BINARY_DIR} ${LLVM_TOOLS_BINARY_DIR})
+  find_program(CLANG_EXECUTABLE clang HINTS ${LLVM_TOOLS_BINARY_DIR})
+  if(Python3_Interpreter_FOUND AND MLIR_TRANSLATE_EXECUTABLE AND CLANG_EXECUTABLE
+      AND UNIX)
+    add_test(NAME runtime-bug-reproduction
+      COMMAND ${CMAKE_COMMAND} -E env
+        "PLUGIN=$<TARGET_FILE:SignAnalysis>"
+        "MLIR_OPT=${MLIR_OPT_EXECUTABLE}"
+        "MLIR_TRANSLATE=${MLIR_TRANSLATE_EXECUTABLE}"
+        "CLANG=${CLANG_EXECUTABLE}"
+        ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check-runtime.py
+        --build-dir ${CMAKE_BINARY_DIR}
+        --output-dir ${CMAKE_BINARY_DIR}/runtime-test
+        --random-inputs 32 --expect-bug)
+    set_tests_properties(runtime-bug-reproduction PROPERTIES TIMEOUT 120)
+  endif()
 else()
   message(STATUS "mlir-opt not found; skipping tests")
 endif()
